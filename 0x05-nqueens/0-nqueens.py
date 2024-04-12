@@ -3,7 +3,9 @@ import sys
 
 
 def is_safe(board, row, col, n):
-    """Check if it's safe to place a queen at position (row, col) on the board."""
+    """
+    Check if it's safe to place a queen at position (row, col) on the board.
+    """
     for i in range(row):
         if board[i][col] == 1:
             return False
