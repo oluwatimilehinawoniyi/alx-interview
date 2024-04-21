@@ -1,42 +1,26 @@
 #!/usr/bin/node
 
-const axios = require('axios');
+const request = require('request');
 
-async function getMovieCharacters (movieId) {
-  return axios.get(`https://swapi.dev/api/films/${movieId}/`)
-    .then(response => {
-      return response.data.characters;
-    })
-    .catch(error => {
-      console.error(`Failed to retrieve data for movie ${movieId}:`, error);
-      return [];
-    });
-}
+const episodeNumber = process.argv[2];
+const url = `https://swapi-api.alx-tools.com/api/films/${episodeNumber}`;
 
-async function printMovieCharacters (movieId) {
-  getMovieCharacters(movieId)
-    .then(characters => {
-      if (characters.length > 0) {
-        characters.forEach(characterUrl => {
-          axios.get(characterUrl)
-            .then(response => {
-              console.log(response.data.name);
-            })
-            .catch(error => {
-              console.error(`Failed to retrieve character data for ${characterUrl}:`, error);
-            });
+request(url, async (error, response, body) => {
+  if (!error) {
+    const movieData = JSON.parse(body);
+    const characters = movieData.characters;
+
+    for (const character of characters) {
+      const promise = new Promise((resolve, reject) => {
+        request(character, (error, response, names) => {
+          if (!error) {
+            resolve(JSON.parse(names).name);
+          } else {
+            reject(error);
+          }
         });
-      } else {
-          console.log('No characters found for this movie.');
-      }
-    });
-}
-
-const movieId = process.argv[2];
-
-if (!movieId) {
-  console.error('Usage: node script.js <movie_id>');
-  process.exit(1);
-}
-
-printMovieCharacters(movieId);
+      });
+      console.log(await promise);
+    }
+  }
+});
